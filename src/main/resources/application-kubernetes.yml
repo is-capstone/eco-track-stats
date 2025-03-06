@@ -1,0 +1,92 @@
+server:
+  port: 8080
+  servlet:
+    encoding:
+      charset: UTF-8
+#  tomcat:
+#    max-swallow-size: 400MB
+spring:
+  # application-wide properties
+  application:
+    name: stats-eco-track-service
+  cloud:
+    kubernetes:
+      discovery:
+        all-namespaces: true
+  threads:
+    virtual:
+      enabled: true
+  mandatory-file-encoding: utf-8
+
+  # persistence (postgresql database) properties
+  flyway:
+    locations: classpath:db/{vendor}/common
+#  jpa:
+#    database-platform: org.hibernate.dialect.MySQLDialect
+
+  #    hibernate:
+#      ddl-auto: create-drop
+#    open-in-view: false
+  datasource:
+    driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+    url: ${CLICKHOUSE_JDBC_URL}
+    username: ${CLICKHOUSE_USERNAME}
+    password: ${CLICKHOUSE_PASSWORD}
+    hikari:
+      minimum-idle: 1
+      maximum-pool-size: 2
+      pool-name: eco-track-stats-ch-cp
+      driver-class-name: com.clickhouse.jdbc.ClickHouseDriver
+
+  # inter-service communication properties
+  rabbitmq:
+    host: ${RABBITMQ_HOST}
+    port: ${RABBITMQ_PORT}
+    username: ${RABBITMQ_USERNAME}
+    password: ${RABBITMQ_PASSWORD}
+    listener:
+      simple:
+        de-batching-enabled: false
+        concurrency: 4
+        max-concurrency: 10
+
+#   security properties
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${KC_JWKSET_URI}
+
+  # persistence (blob storage) properties
+#  s3:
+#    endpoint: ${S3_ENDPOINT}
+#    access-key: ${S3_ACCESS_KEY}
+#    secret-key: ${S3_SECRET_KEY}
+#  servlet:
+#    multipart:
+#      max-file-size: 20GB
+#      max-request-size: 20GB
+
+management:
+  # actuator properties (health-checks)
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      probes:
+        enabled: true
+        add-additional-paths: true
+
+# application usage statistics propagation configuration
+api:
+  stats:
+    api-usage-stats-queue: ${API_STATS_QUEUE}
+logging:
+  level:
+    org:
+      springframework:
+        data: ${SPRING_DATA_LOG_LEVEL:info}
+        web: ${SPRING_WEB_LOG_LEVEL:info}
+      hibernate: ${HIBERNATE_LOG_LEVEL:info}
